@@ -78,6 +78,29 @@ h1 {
   margin-bottom: 15px;
 }
 
+.url-input {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 10px;
+  border: 1px solid var(--secondary-color);
+  font-family: var(--font-family);
+  font-size: 1rem;
+  background-color: #fff;
+  margin-bottom: 10px;
+}
+
+.url-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(88, 100, 74, 0.2);
+}
+
+.input-hint {
+  font-size: 0.8rem;
+  color: #666;
+  display: block;
+}
+
 .upload-area {
   display: flex;
   justify-content: center;

@@ -8,10 +8,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
-// !!! QUAN TRỌNG: Hãy thay thế URL này bằng URL Cloudflare Worker của bạn.
-// Đây là URL từ ảnh bạn đã cung cấp.
-const CLOUDFLARE_WORKER_URL = 'https://gemini-api-proxy.vua94713.workers.dev';
-
 const STYLES = {
   PALAROID: `Create an image taken with a Polaroid camera. The photo should look like a regular photo, without any clear subject or props. The photo should have a slight blur effect and consistent lighting source, like a flash in a dark room, spread throughout the photo. Do not alter the faces. Replace the background behind the two people with a white curtain. The man should be squeezing the woman's cheek while wrinkling his nose, and the woman should be pouting.`,
   '3D hot trend': `Use the nano-banana model to create a 1/7 scale commercialized figure of thecharacter in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text.On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.`,
@@ -35,40 +31,47 @@ const App = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [workerStatus, setWorkerStatus] = useState<'pending' | 'online' | 'offline'>('pending');
   const [workerError, setWorkerError] = useState<string | null>(null);
+  const [workerUrl, setWorkerUrl] = useState<string>(() => localStorage.getItem('workerUrl') || '');
 
+  useEffect(() => {
+    if (workerUrl) {
+      localStorage.setItem('workerUrl', workerUrl);
+    } else {
+      localStorage.removeItem('workerUrl');
+    }
+  }, [workerUrl]);
 
   useEffect(() => {
     const checkWorkerStatus = async () => {
-      if (!CLOUDFLARE_WORKER_URL) {
+      if (!workerUrl) {
         setWorkerStatus('offline');
-        setWorkerError("URL của Worker chưa được cấu hình. Vui lòng cập nhật biến CLOUDFLARE_WORKER_URL trong code.");
+        setWorkerError("Vui lòng nhập URL Cloudflare Worker của bạn để bắt đầu.");
         return;
       }
       try {
-        // Worker mong đợi một yêu cầu POST, nhưng chúng ta có thể gửi một yêu cầu OPTIONS (preflight)
-        // để kiểm tra xem máy chủ có phản hồi không mà không cần gửi dữ liệu đầy đủ.
-        const response = await fetch(CLOUDFLARE_WORKER_URL, { method: 'OPTIONS' });
-        if (response.ok || response.type === 'opaque' || response.status === 405) { // 405 Method Not Allowed là một phản hồi hợp lệ cho OPTIONS
+        setWorkerStatus('pending');
+        setWorkerError(null);
+        const response = await fetch(workerUrl, { method: 'OPTIONS' });
+        if (response.ok || response.type === 'opaque' || response.status === 405) {
           setWorkerStatus('online');
           setWorkerError(null);
         } else {
           setWorkerStatus('offline');
-          setWorkerError(`Worker trả về mã lỗi: ${response.status}`);
+          setWorkerError(`Worker trả về mã lỗi: ${response.status}. URL có đúng không?`);
         }
       } catch (e) {
         setWorkerStatus('offline');
-        setWorkerError("Lỗi mạng hoặc CORS. Hãy chắc chắn Worker của bạn đã được cấu hình CORS đúng cách.");
+        setWorkerError("Lỗi mạng hoặc CORS. Hãy chắc chắn Worker của bạn đã được cấu hình CORS đúng cách và URL là chính xác.");
         console.error(e);
       }
     };
     checkWorkerStatus();
-  }, []);
+  }, [workerUrl]);
 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Basic validation for image types
       if (!file.type.startsWith('image/')) {
         alert('Vui lòng chỉ tải lên file ảnh (jpeg, png, webp).');
         return;
@@ -88,6 +91,10 @@ const App = () => {
       alert('Vui lòng tải ảnh lên trước.');
       return;
     }
+    if (!workerUrl || workerStatus !== 'online') {
+      alert('Vui lòng cấu hình và kết nối tới Worker trước.');
+      return;
+    }
     setIsLoading(true);
     setProgress(0);
     setResults([]);
@@ -99,7 +106,6 @@ const App = () => {
         for (let i = 0; i < numVariations; i++) {
             const prompt = STYLES[selectedStyle];
             
-            // SỬA LỖI: Chuyển sang camelCase để khớp với API của Gemini
             const requestBody = {
               model: 'gemini-2.5-flash-image-preview',
               contents: {
@@ -113,7 +119,7 @@ const App = () => {
               }
             };
 
-            const response = await fetch(CLOUDFLARE_WORKER_URL, {
+            const response = await fetch(workerUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody),
@@ -172,6 +178,21 @@ const App = () => {
       </header>
 
       <main>
+        <div className="card">
+          <p className="section-title">0. Cấu hình Worker</p>
+          <input
+            type="url"
+            className="url-input"
+            placeholder="https://your-worker.your-name.workers.dev"
+            value={workerUrl}
+            onChange={(e) => setWorkerUrl(e.target.value.trim())}
+            aria-label="Cloudflare Worker URL"
+          />
+          <small className="input-hint">
+            Dán URL của Cloudflare Worker của bạn vào đây. URL này sẽ được lưu trên trình duyệt của bạn cho lần sau.
+          </small>
+        </div>
+        
         <div className="card">
           <p className="section-title">1. Tải ảnh lên</p>
           <div className="upload-area">
@@ -258,7 +279,7 @@ const App = () => {
             <div className={`worker-status status-${workerStatus}`}>
                 {workerStatus === 'pending' && 'Đang kiểm tra Worker...'}
                 {workerStatus === 'online' && 'Worker sẵn sàng'}
-                {workerStatus === 'offline' && <><b>Không thể kết nối Worker.</b><br/> <small>{workerError}</small></>}
+                {workerStatus === 'offline' && <><b>{workerUrl ? 'Không thể kết nối Worker.' : 'Worker chưa được cấu hình.'}</b><br/> <small>{workerError}</small></>}
             </div>
         </div>
 
