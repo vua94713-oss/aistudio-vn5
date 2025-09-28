@@ -108,15 +108,14 @@ const App = () => {
             
             const requestBody = {
               model: 'gemini-2.5-flash-image-preview',
-              contents: {
-                parts: [
-                  { inlineData: { data: image, mimeType: imageMimeType } },
-                  { text: prompt },
-                ],
-              },
-              config: {
-                responseModalities: ['IMAGE', 'TEXT'],
-              }
+              contents: [
+                {
+                  parts: [
+                    { inlineData: { data: image, mimeType: imageMimeType } },
+                    { text: prompt },
+                  ],
+                },
+              ],
             };
 
             const response = await fetch(workerUrl, {
