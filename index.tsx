@@ -144,17 +144,15 @@ const App = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [contents], // FIX: `contents` must be an array
-                    generationConfig: {
-                        responseModalities: ['IMAGE', 'TEXT'],
-                    }
+                    contents: contents, // Corrected: pass the object directly
+                    responseModalities: ['IMAGE', 'TEXT'], // Corrected: move to top-level
                 })
             });
 
             if (!res.ok) {
                 const errorBody = await res.text();
                 console.error('API Error Response:', errorBody);
-                throw new Error(`API request failed with status ${res.status}`);
+                throw new Error(`API request failed with status ${res.status}: ${errorBody}`);
             }
 
             const data = await res.json();
@@ -164,7 +162,9 @@ const App = () => {
                 successfulResults.push(`data:${generatedImagePart.inlineData.mimeType};base64,${generatedImagePart.inlineData.data}`);
             } else {
                 console.error('No image data in API response:', data);
-                throw new Error('No image data in API response');
+                // Attempt to find an error message from the API response
+                const apiError = data.error?.message || JSON.stringify(data);
+                throw new Error(`No image data in API response. Details: ${apiError}`);
             }
         } catch (err) {
             console.error(`Failed to generate image #${i + 1}:`, err);
