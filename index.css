@@ -1,1 +1,349 @@
-full contents of index.css
+:root {
+  --background-color: #F8F5F1;
+  --card-background-color: #EFEBE4;
+  --primary-color: #58644A;
+  --secondary-color: #D3CDBF;
+  --text-color: #3a3a3a;
+  --button-text-color: #FFFFFF;
+  --border-radius: 20px;
+  --font-family: 'Inter', sans-serif;
+  --status-pending-color: #888;
+  --status-online-color: #28a745;
+  --status-offline-color: #dc3545;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  font-family: var(--font-family);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.5rem;
+}
+
+.header-icons span {
+    background-color: #e3e0da;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  text-align: center;
+}
+
+.card {
+  background-color: var(--card-background-color);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  width: 100%;
+}
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.upload-area {
+  display: flex;
+  justify-content: center;
+}
+
+.upload-placeholder {
+  width: 120px;
+  height: 120px;
+  border: 2px dashed var(--secondary-color);
+  border-radius: var(--border-radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #888;
+}
+
+.upload-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.image-preview-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--border-radius);
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 1.2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.style-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.style-btn {
+  padding: 15px;
+  border: none;
+  border-radius: 15px;
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  font-family: var(--font-family);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.style-btn.active {
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+}
+
+.variation-selector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.variation-selector button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--secondary-color);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.variation-selector input {
+  width: 60px;
+  height: 44px;
+  border-radius: 15px;
+  border: 1px solid var(--secondary-color);
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  background-color: #fff;
+  font-family: var(--font-family);
+}
+
+.action-section {
+  text-align: center;
+}
+
+.generate-btn {
+  width: 100%;
+  padding: 18px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 50px;
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.generate-btn:disabled {
+  background-color: var(--secondary-color);
+  cursor: not-allowed;
+}
+
+.worker-status {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.worker-status.status-pending { color: var(--status-pending-color); }
+.worker-status.status-online { color: var(--status-online-color); }
+.worker-status.status-offline { color: var(--status-offline-color); }
+.worker-status small { font-weight: 400; }
+
+
+.loading-section {
+    text-align: center;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 10px;
+    background-color: var(--secondary-color);
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 15px 0;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--primary-color);
+    border-radius: 5px;
+    transition: width 0.3s ease-in-out;
+}
+
+.progress-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.loading-note {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 10px;
+}
+
+.error-message {
+    text-align: center;
+    color: #D8000C;
+    background-color: #FFD2D2;
+    border: 1px solid #D8000C;
+}
+
+.results-section {
+    margin-top: 20px;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.results-header h2 {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.download-all-btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 15px;
+    background-color: var(--card-background-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.result-item {
+    position: relative;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+}
+
+.result-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.result-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 10px;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.result-item:hover .result-overlay {
+    opacity: 1;
+}
+
+.result-overlay span {
+    font-weight: 600;
+}
+
+.download-btn {
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+}
+
+footer {
+    text-align: center;
+    font-weight: 500;
+    margin-top: 20px;
+}
