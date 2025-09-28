@@ -72,6 +72,9 @@ import { createRoot } from 'react-dom/client';
 */
 // ===================================================================
 
+// !!! QUAN TRỌNG: URL đã được cập nhật dựa trên ảnh của bạn !!!
+const CLOUDFLARE_WORKER_URL = 'https://gemini-api-proxy.vua94713.workers.dev';
+
 const PROMPTS = {
   PALAROID: `Create an image taken with a Polaroid camera. The photo should look like a regular photo, without any clear subject or props. The photo should have a slight blur effect and consistent lighting source, like a flash in a dark room, spread throughout the photo. Do not alter the faces. Replace the background behind the person/people with a white curtain. If there are two people, the man should be squeezing the woman's cheek while wrinkling his nose, and the woman should be pouting. If there is one person, they should have a natural, candid expression.`,
   '3D hot trend': `Use the nano-banana model to create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork.`,
@@ -136,38 +139,54 @@ const App = () => {
       };
 
       const successfulResults: string[] = [];
+      let lastError: string | null = null;
 
       // Generate images sequentially to provide better progress feedback
       for (let i = 0; i < numVariations; i++) {
         try {
-            const res = await fetch('/api/generate', { // NOTE: This path should be proxied to your Cloudflare Worker URL
+            if (CLOUDFLARE_WORKER_URL.includes('your-worker-name')) {
+                throw new Error("Lỗi cấu hình: Vui lòng cập nhật CLOUDFLARE_WORKER_URL trong file index.tsx.");
+            }
+
+            const res = await fetch(CLOUDFLARE_WORKER_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: contents, // Corrected: pass the object directly
-                    responseModalities: ['IMAGE', 'TEXT'], // Corrected: move to top-level
+                    contents: contents,
+                    responseModalities: ['IMAGE', 'TEXT'],
                 })
             });
 
+            const responseText = await res.text();
             if (!res.ok) {
-                const errorBody = await res.text();
-                console.error('API Error Response:', errorBody);
-                throw new Error(`API request failed with status ${res.status}: ${errorBody}`);
+                console.error('API Error Response:', responseText);
+                let errorMsg = `Lỗi máy chủ: ${res.status}`;
+                try {
+                  const errorJson = JSON.parse(responseText);
+                  errorMsg = errorJson.error?.message || responseText;
+                } catch(e) {
+                  errorMsg = responseText;
+                }
+                throw new Error(errorMsg);
             }
 
-            const data = await res.json();
+            const data = JSON.parse(responseText);
             const generatedImagePart = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
 
             if (generatedImagePart) {
                 successfulResults.push(`data:${generatedImagePart.inlineData.mimeType};base64,${generatedImagePart.inlineData.data}`);
             } else {
-                console.error('No image data in API response:', data);
-                // Attempt to find an error message from the API response
-                const apiError = data.error?.message || JSON.stringify(data);
-                throw new Error(`No image data in API response. Details: ${apiError}`);
+                 console.error('No image data in API response:', data);
+                 const blockReason = data.candidates?.[0]?.finishReason;
+                 if (blockReason === 'SAFETY') {
+                    throw new Error("Không thể tạo ảnh do vi phạm chính sách an toàn.");
+                 }
+                 const apiError = data.error?.message || 'Không tìm thấy dữ liệu ảnh trong phản hồi.';
+                 throw new Error(apiError);
             }
         } catch (err) {
             console.error(`Failed to generate image #${i + 1}:`, err);
+            lastError = err instanceof Error ? err.message : String(err);
         }
         
         // Update progress after each attempt (success or fail)
@@ -177,7 +196,8 @@ const App = () => {
       setGeneratedImages(successfulResults);
 
       if (successfulResults.length < numVariations) {
-          setError(`Không thể tạo ${numVariations - successfulResults.length} ảnh. Vui lòng thử lại.`);
+          const errorCount = numVariations - successfulResults.length;
+          setError(`Không thể tạo ${errorCount} ảnh. Lỗi cuối cùng: ${lastError || 'Không rõ'}`);
       }
       
       setIsLoading(false);
